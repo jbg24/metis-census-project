@@ -1,2 +1,2 @@
 # census-project
-Data pipeline project to track income segregation
+Metis data pipeline project to track income segregation
