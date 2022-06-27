@@ -1,28 +1,28 @@
 # Project Proposal
 
 ## Question:
-The project will provide an updated version of Stanford's [Income Segregation Map](https://inequality.stanford.edu/income-segregation-maps). The map offers a visualization of major US cities' level of income segregation. The map and accompanying visualizations for this project will work off of definitions and methodologies which are explained in detail by existing Stanford [research](https://cepa.stanford.edu/sites/default/files/the%20continuing%20increase%20in%20income%20segregation%20march2016.pdf). Ultimately, I will show for each US city above 500,000 people the proportion of families living in "poor" or "affluent" neighborhoods (i.e. census block groups) according to 2016-2020 and 2011-2015 American Community Survey estimates. The system could be beneficial for economists, city planners, or community organizers/advocates looking to better understand recent trends in housing segregation and income inequality.
+The project will map property sales in the last ~120 days in the 100 largest US cities. In addition, a few summary statistics for each location (e.g. average sale price, average cost per square foot, etc.) will be displayed for the relevant time period. The system could be beneficial for economists, city planners, or anyone looking to better understand recent trends in the housing market.
 
 ## Data Description:
-Data will be pulled from the [American Community Survey API](https://www.census.gov/data/developers/data-sets.html) provided by the US Census Bureau. Specifically, I will use [a wrapper already created](https://github.com/datamade/census). While the data source in this case does not update regularly, for learning purposes I plan to set up a daily automatic refresh of the data using Airflow. A unit of analysis is the number of families in a specific income brack in a census tract:
-* GEOID (Census tract identifier)
-* Income bracket (e.g. $10,000, $15,000, etc.)
-* Count of families
-* Year 
-* 
+Data will be pulled from an API, [Realty in the US](https://rapidapi.com/apidojo/api/realty-in-us/). I plan to set up a nightly automatic refresh of the data using Airflow. A unit of analysis is a home sold in one of the top 100 US cities by population. Example data points include
+* Address
+* Sale Price
+* Date Sold
+* Square Feet
+* Bedrooms
+* Bathrooms
+* Latitude
+* Longitude
 
-We will also need the median family income of each Metropolitan Statistical Area under analysis for comparison:
-* Metropolitan Statistical Area Identifier 
-* Metro Name
-* Median Family Income
-
-A statis [reference file](https://www.census.gov/geographies/reference-files/time-series/demo/metro-micro/delineation-files.html) will be needed to associate census tracts with MSA's.  From this data, we can calculate the percentage of families in each tract that fall into "poor" or "affluent" categories (based on Stanford definitions).  Using Dash Plotly, I will visualize the findings for each census tract, metro area, and country as a whole. In other words, from 2015 to 2020 what are the city- and country-wide trends in income segregation. 
+From this data, we can calculate summary statistics over a specific time frame for each city to be part of the map visualization. Approximately 500,000 records will be stored initially but, ideally, new property sales are appended to old ones so the data points will grow over time. The scope of data will be set by the limits of the API above and, in some cases, may not offer a complete set of home sales.
 
 ## Tools:
-I will set up an automatic data ingestion from the census API to a SQL database. Data cleaning and preprocessing will be done prior to data storage and data calculations will be made to feed data into a Dashboard created using Plotly and hosted by Heroku. What will be neeed for data handling? 
+I will set up an automatic data ingestion from the API above to a MongoDB database to store relevant JSON files (and Airflow for scheduled ingestion). Data cleaning and processing will be done with Python and Spark. Appropriate tests will be incorporated. I will create a geovisualization app using Flask and Mapbox. The web app will be hosted with Heroku. 
 
 ## MVP Goal:
 
-An MVP will include a local web application with a map visualization that pulls data from a flat file for one major metropolitan area. 
+An MVP will include a local web app with a map visualization that pulls relevant home sales data from a flat file for one major city.
 
 ## Pipeline sketch:
+<img width="783" alt="image" src="https://user-images.githubusercontent.com/5652437/175840231-f4942abf-c6eb-4895-8adc-61814a2e7eb6.png">
+
