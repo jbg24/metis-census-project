@@ -1,57 +1,74 @@
 import requests
+import pymongo
+from urllib.parse import quote
+import aiohttp
+import asyncio
+import time
 import pandas as pd
-from pymongo import MongoClient
 from config import rapid_api_key
-client = MongoClient()
 
-url = "https://realty-in-us.p.rapidapi.com/properties/v2/list-sold"
 headers = {
 	"X-RapidAPI-Key": rapid_api_key,
 	"X-RapidAPI-Host": "realty-in-us.p.rapidapi.com"
 }
 
-big_us_cities = pd.read_csv("biggest_us_cities.csv", header=None, names=["City","State"])
+# Pull in relevant cities to get housing data for
+big_us_cities = pd.read_csv("biggest_us_cities_50.csv", header=None, names=["City","State"])
 state_codes = pd.read_csv("state_codes.csv")
 city_housing_sold_count = []
 
+# connect to mongo db
+def get_mongo():
+	user = quote(st.secrets["db_username"])
+	passw = quote(st.secrets["db_password"])
+	client = pymongo.MongoClient(f"mongodb+srv://{user}:{passw}@cluster0.3rqxp.mongodb.net/?retryWrites=true&w=majority")
+	return client[ "testdb" ]
+
+# match state name with state code
 def get_state_code(state_name):
 	return state_codes[state_codes["State"]==state_name]["Code"].item()
 
-def get_count_housing_records(city, state):
-	state_code = get_state_code(state)
-	#print(state_code)
-	querystring = {"city":city,"state_code":state_code,"offset":0,"limit":10,"sort":"sold_date"}
-	#print(querystring)
-	response = requests.request("GET", url, headers=headers, params=querystring).json()        
-	#print(response)
-	all_items = response["meta"]["matching_rows"]
-	return all_items
+# Make API call and return list of properties 
+async def get_properties(session, url, db, metro_area):
+	async with session.get(url) as resp:
+		prop_data = await resp.json()
+		if "properties" in prop_data:
+			properties = prop_data['properties']
+			for house in properties:
+				house["metro_area"] = metro_area
+			db.insert_many(properties)
+			return True
+		else:
+			print(prop_data)
+			return None
 
-def get_all_housing_records(city,state):
-	querystring = {"city":city,"state_code":state,"offset":0,"limit":1}
-	response = requests.request("GET", url, headers=headers, params=querystring).json()       
-	total_records = response["meta"]["matching_rows"]
-	limit=200
-	max_offset = int(total_records/limit)
-	all_items = []
-	for i in range(0, max_offset+1):
-		offset = i*limit
-		if ((i+1)*limit)>total_records:
-			limit = total_records%limit
-		querystring = {"city":city,"state_code":state,"offset":offset,"limit":limit,"sort":"sold_date"}             
-		response = requests.request("GET", url, headers=headers, params=querystring).json()        
-		all_items = all_items+response["properties"]
-	return all_items
+# Using async, paginate through total records for each city and state
+async def main(db,city,state):
 
-def main():
-	#big_us_cities["total_sold_records"] = big_us_cities.apply(lambda row: get_count_housing_records(row["City"],row["State"]),axis=1)
-	test_cleveland = get_all_housing_records("Cleveland","OH")
-	client = MongoClient()
-	properties = client.properties
-	properties.insert_many(test_cleveland)
-	list(properties.aggregate([{'$group':{'_id':'$address.postal_code','count':{'$sum':1}}}]))
-	list(properties.aggregate([{'$group':{'_id':'$address.postal_code','average':{'$avg':"$price"}}}]))
+    metro_area = f"{city},{state}"
+    print(f"Getting sold housing data for {city}...")
+
+    async with aiohttp.ClientSession(headers=headers) as session:
+        
+        tasks = []
+        offset=0
+        total_records = 3000
+
+        while offset < total_records:
+            url = f"https://realty-in-us.p.rapidapi.com/properties/v2/list-sold?offset={offset}&limit=200&city={quote(city)}&state_code={state}"
+            attempt = asyncio.ensure_future(get_properties(session, url, db,metro_area))
+            if attempt:
+            	tasks.append(attempt)
+            else:
+            	break
+            offset = offset+200
+            await asyncio.sleep(1/4)
+
+        await asyncio.gather(*tasks)
 
 if __name__== '__main__':
-	main()
+	m = get_mongo()
+	test_col = m["testcol"]
+	big_us_cities.apply(lambda x: asyncio.run(main(test_col, x["City"],get_state_code(x["State"]))),axis=1)
+
 
