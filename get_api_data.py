@@ -56,7 +56,7 @@ async def get_properties(session, url, db, metro_area):
 async def main(db,city,state):
 
     metro_area = f"{city},{state}"
-    print(f"/nGetting sold housing data for {city}",end = '')
+    print(f"\nGetting sold housing data for {city}",end =" ")
 
     async with aiohttp.ClientSession(headers=headers) as session:
         
@@ -66,7 +66,7 @@ async def main(db,city,state):
 
         while offset < total_records:
             if offset%1000 == 0:
-            	print("...", end='')
+            	print("...", end=" ")
             url = f"https://realty-in-us.p.rapidapi.com/properties/v2/list-sold?offset={offset}&limit=200&city={quote(city)}&state_code={state}&sort=sold_date"
             attempt = asyncio.ensure_future(get_properties(session, url, db,metro_area))
             if attempt:
