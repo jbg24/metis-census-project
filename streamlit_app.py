@@ -4,8 +4,6 @@ import pymongo
 import json
 import geopandas as gpd
 import plotly.express as px
-#from get_zip_code_shape_files import get_shape_files
-from get_api_data import get_mongo
 
 three_month_avg_city = pd.read_csv("three_month_avg_city.csv")
 three_month_avg_city_zip = pd.read_csv("three_month_avg_city_zip.csv")
