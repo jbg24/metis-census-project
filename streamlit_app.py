@@ -1,23 +1,18 @@
 import streamlit as st
 import pandas as pd
+import pymongo
 import json
 import geopandas as gpd
 import plotly.express as px
-from get_zip_code_shape_files import get_shape_files
+#from get_zip_code_shape_files import get_shape_files
+from get_api_data import get_mongo
 
 three_month_avg_city = pd.read_csv("three_month_avg_city.csv")
 three_month_avg_city_zip = pd.read_csv("three_month_avg_city_zip.csv")
 three_month_avg_city_timeseries = pd.read_csv("three_month_avg_city_timeseries.csv")
+shape_file_data = gpd.read_file("geo_data.json").set_index("ZCTA5CE10")
 
 st.set_page_config(layout="wide")
-
-@st.cache
-def get_all_shape_files():
-	st.write("Getting file again")
-	#return get_shape_files()
-	return gpd.GeoDataFrame.from_file("relevant_shape_file_data.json")
-
-shape_file_data = get_all_shape_files()
 
 st.subheader('Need new data?')
 new_data = st.button("Update")
@@ -30,13 +25,13 @@ city_select = st.selectbox(
     )
 
 three_month_avg_city_zip_show = three_month_avg_city_zip[three_month_avg_city_zip["metro_area"]==city_select]
-zip_list = three_month_avg_city_zip_show["postal_code"].apply(lambda x: int(x)).unique()
-updated_shape_file_data = shape_file_data[shape_file_data["ZCTA5CE10"].astype(int).isin(zip_list)].set_index("ZCTA5CE10")
+#zip_list = three_month_avg_city_zip_show["postal_code"].apply(lambda x: int(x)).unique()
+#updated_shape_file_data = shape_file_data[shape_file_data["ZCTA5CE10"].astype(int).isin(zip_list)].set_index("ZCTA5CE10")
 
 c1, c2, c3 = st.columns((2,1, 1))
 
 # Show map with average sale price per zip code
-fig = px.choropleth(three_month_avg_city_zip_show, geojson=updated_shape_file_data, locations='postal_code', color='median_sale_price',
+fig = px.choropleth(three_month_avg_city_zip_show, geojson=shape_file_data, locations='postal_code', color='median_sale_price',
                            color_continuous_scale="Viridis",
                            #range_color=(0, 420000),
                            #mapbox_style="carto-positron",

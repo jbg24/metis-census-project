@@ -1,0 +1,34 @@
+,metro_area,median_sale_price,house_count
+0,"Atlanta,GA",405000.0,3911
+1,"Baltimore,MD",250000.0,3105
+2,"Boston,MA",800000.0,2372
+3,"Charlotte,NC",420000.0,4042
+4,"Colorado Springs,CO",463000.0,749
+5,"Columbus,OH",255000.0,3028
+6,"Denver,CO",635000.0,1337
+7,"Detroit,MI",62500.0,15
+8,"Fresno,CA",361750.0,312
+9,"Indianapolis,IN",223000.0,1457
+10,"Jacksonville,FL",305000.0,3887
+11,"Las Vegas,NV",440000.0,2764
+12,"Long Beach,CA",840000.0,937
+13,"Louisville,KY",180000.0,667
+14,"Memphis,TN",184645.0,2
+15,"Mesa,AZ",439000.0,2655
+16,"Miami,FL",500000.0,3573
+17,"Milwaukee,WI",188330.0,3054
+18,"Minneapolis,MN",350000.0,2265
+19,"Nashville,TN",467125.0,1532
+20,"Oakland,CA",975000.0,1187
+21,"Oklahoma City,OK",258000.0,3335
+22,"Omaha,NE",262000.0,285
+23,"Portland,OR",580000.0,3836
+24,"Raleigh,NC",410000.0,1885
+25,"Sacramento,CA",510000.0,2583
+26,"San Francisco,CA",1560000.0,1831
+27,"Seattle,WA",875000.0,3316
+28,"Tampa,FL",392000.0,3477
+29,"Tucson,AZ",338250.0,3832
+30,"Tulsa,OK",217000.0,1895
+31,"Virginia Beach,VA",345000.0,653
+32,"Washington,DC",699000.0,2769

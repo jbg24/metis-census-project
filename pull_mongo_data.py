@@ -3,6 +3,8 @@ from urllib.parse import quote
 import pandas as pd
 from datetime import date
 from dateutil.relativedelta import relativedelta
+import json
+import streamlit as st
 
 
 month_labels = {1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun', 7: 'Jul', 8: 'Aug',
@@ -15,14 +17,14 @@ def init_connection():
 	return pymongo.MongoClient(f"mongodb+srv://{user}:{passw}@cluster0.3rqxp.mongodb.net/?retryWrites=true&w=majority")
 
 client = init_connection()
+db = client.housing
 
 # Pull data from the collection.
-def get_data():
-    db = client.testdb
-    items = db.testcol.find({ "price": { '$gt': 0 } },{"metro_area":1,"price":1,"address.postal_code":1,"last_update":1,"_id":0})
+def get_property_data():
+    items = db.sold_properties.find({ "price": { '$gt': 0 } },{"metro_area":1,"price":1,"address.postal_code":1,"last_update":1,"_id":0})
     return list(items)
 
-items = get_data()
+items = get_property_data()
 
 # Make necessary changes to data for analysis
 def clean_data(df):
@@ -44,10 +46,18 @@ def get_price_avg(df, column_groups):
 	count = df.groupby(column_groups)["price"].count().reset_index().rename(columns={"price":"house_count"})
 	return price_avg.merge(count,on=column_groups)
 
+def get_zip_code_data(df):
+	geo_data = {"type":"FeatureCollection"}
+	zip_code_list = df["postal_code"].unique().tolist()
+	relevant_zips = list(db.zip_codes.find({"properties.ZCTA5CE10":{"$in":zip_code_list}},{"_id":0}))
+	geo_data["features"] = relevant_zips
+	return geo_data
+
 def process():
 	df = pd.DataFrame(items)
 	df_clean = clean_data(df)
 	df_past_3mo = filter_past_x_months(df_clean, 3)
+	geo_data = get_zip_code_data(df_past_3mo)
 	three_month_avg_city = get_price_avg(df_past_3mo, ["metro_area"])
 	three_month_avg_city_zip = get_price_avg(df_past_3mo, ["metro_area","postal_code"])
 	three_month_avg_city_timeseries = get_price_avg(df_past_3mo, ["metro_area","last_update_month","last_update_year"])
@@ -56,5 +66,7 @@ def process():
 	three_month_avg_city.to_csv("three_month_avg_city.csv")
 	three_month_avg_city_zip.to_csv("three_month_avg_city_zip.csv")
 	three_month_avg_city_timeseries.to_csv("three_month_avg_city_timeseries.csv")
+	with open('geo_data.json', 'w') as outfile:
+		json.dump(geo_data, outfile)
 
 process()
