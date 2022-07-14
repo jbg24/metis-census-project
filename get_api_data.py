@@ -14,7 +14,7 @@ headers = {
 }
 
 # Relevant fields for proeperty data
-property_fields = ["property_id","last_update","address","price","prop_type","prop_status","is_new_construction","list_date"]
+property_fields = ["property_id","last_update","address","price","list_date"]
 
 # Pull in relevant cities to get housing data for
 big_us_cities = pd.read_csv("biggest_us_cities_by_pop.csv", header=None, names=["City","State"])
