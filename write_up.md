@@ -27,6 +27,7 @@ I calculate the average (median) price of sold homes over the past three months 
 
 ## Communication
 [Final presentation summary with updated data pipeline](https://github.com/jbg24/metis-homesale-project/blob/main/final_presentation.pdf)
+
 [Live web app
 ](https://jbg24-metis-homesale-project-streamlit-app-2nhjq0.streamlitapp.com/)
 
